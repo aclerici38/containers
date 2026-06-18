@@ -59,11 +59,18 @@ jobs:
       - name: Install regctl
         uses: regclient/actions/regctl-installer@14f9d37db17b5dc41fefd1ffdd1af4b9e2490560 # main
 
+      - name: Resolve App Path
+        uses: ./.github/actions/app-path
+        id: app-path
+        with:
+          app: ${{ matrix.app }}
+
       - name: Get Bake Options
         uses: ./.github/actions/app-options
         id: app-options
         with:
           app: ${{ matrix.app }}
+          app-path: ${{ steps.app-path.outputs.path }}
 
       - name: Get App Registry Version
         id: registry

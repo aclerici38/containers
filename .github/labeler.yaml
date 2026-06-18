@@ -4,6 +4,11 @@ area/apps:
       - any-glob-to-any-file:
           - apps/**/*
           - include/**/*
+area/home-assistant-apps:
+  - changed-files:
+      - any-glob-to-any-file:
+          - home-assistant-apps/**/*
+          - repository.yaml
 area/github:
   - changed-files:
       - any-glob-to-any-file:

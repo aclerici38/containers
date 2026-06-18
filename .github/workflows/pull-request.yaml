@@ -16,15 +16,35 @@ jobs:
     permissions:
       contents: read
     outputs:
-      changed-files: ${{ steps.changed-files.outputs.changed_files }}
+      changed-files: ${{ steps.merge.outputs.result }}
     steps:
-      - name: Get changed files
+      - name: Get changed files (apps)
         uses: bjw-s-labs/action-changed-files@a9a36fb08ce06db9b02fbd8026cc2c0945eb9841 # v0.6.0
-        id: changed-files
+        id: changed-apps
         with:
           path: apps
           include_only_directories: true
           max_depth: 1
+
+      - name: Get changed files (home-assistant-apps)
+        uses: bjw-s-labs/action-changed-files@a9a36fb08ce06db9b02fbd8026cc2c0945eb9841 # v0.6.0
+        id: changed-haos
+        with:
+          path: home-assistant-apps
+          include_only_directories: true
+          max_depth: 1
+
+      - name: Merge changed apps
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        id: merge
+        env:
+          APPS: ${{ steps.changed-apps.outputs.changed_files }}
+          HAOS: ${{ steps.changed-haos.outputs.changed_files }}
+        with:
+          script: |
+            const parse = (s) => { try { return JSON.parse(s || '[]'); } catch { return []; } };
+            const merged = [...parse(process.env.APPS), ...parse(process.env.HAOS)];
+            core.setOutput('result', JSON.stringify(merged));
 
   build:
     if: ${{ needs.prepare.outputs.changed-files != '[]' }}

@@ -42,20 +42,17 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
 
-      - name: Validate App Directory
-        env:
-          APP: ${{ inputs.app }}
-        run: |
-          if [[ ! -d "./apps/${APP}" ]]; then
-            echo "::error::App directory './apps/${APP}' does not exist"
-            exit 1
-          fi
+      - name: Resolve App Path
+        uses: ./.github/actions/app-path
+        id: app-path
+        with:
+          app: ${{ inputs.app }}
 
       - name: Delete App Directory
         env:
-          APP: ${{ inputs.app }}
+          APP_PATH: ${{ steps.app-path.outputs.path }}
         run: |
-          rm -rf ./apps/${APP}
+          rm -rf "./${APP_PATH}"
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1

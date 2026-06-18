@@ -1,0 +1,6 @@
+---
+# Home Assistant add-on repository marker. The Supervisor discovers add-ons by
+# recursively scanning for config.yaml, so add-ons can live under home-assistant-apps/.
+name: aclerici38 Home Assistant Add-ons
+url: https://github.com/aclerici38/containers
+maintainer: Anthony Clerici (https://github.com/aclerici38)

@@ -1,0 +1,3 @@
+# Ignore everything except the files the Dockerfile needs in the build context.
+/*
+!run.sh

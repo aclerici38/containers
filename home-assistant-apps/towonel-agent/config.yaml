@@ -1,0 +1,64 @@
+# Home Assistant add-on config for the towonel tunnel agent.
+# Docs for these keys: https://developers.home-assistant.io/docs/add-ons/configuration/
+name: Towonel Agent
+# version is the published image tag the Supervisor pulls (image:version below).
+# It tracks the upstream agent release pinned as VERSION in docker-bake.hcl.
+version: "0.2.2"
+slug: towonel_agent
+description: >-
+  Self-hosted tunnel agent (towonel) — expose Home Assistant through NAT / CGNAT /
+  dynamic IP without opening inbound ports. A privilege-light alternative to Cloudflare Tunnel.
+url: https://towonel.dev/docs/agent/docker/
+# Prebuilt multi-arch image from this repo's CI (GHCR). The Supervisor PULLS this
+# rather than building on the device — no Dockerfile/build.yaml build on the HAOS box.
+image: ghcr.io/aclerici38/towonel-agent
+
+arch:
+  - aarch64
+  - amd64
+
+init: false
+startup: application
+boot: auto
+
+# --- Security posture (least privilege) ---------------------------------------
+# The agent only makes OUTBOUND QUIC connections to the towonel relays and reaches
+# its origin (Home Assistant) over the internal Supervisor network, so none of the
+# privileged options below are needed.
+host_network: false # stay on the isolated add-on network
+hassio_role: default # no elevated Supervisor role
+hassio_api: false # agent never talks to the Supervisor API
+homeassistant_api: false # agent never talks to the HA API
+auth_api: false
+ingress: false # the tunnel itself is the entry point; no ingress UI
+apparmor: true # use the bundled apparmor.txt profile
+# Intentionally NOT set: privileged, full_access, devices, map, ports, video, audio,
+# gpio, usb, uart, kernel_modules, host_pid, host_ipc, host_dbus, docker_api.
+
+# --- User options --------------------------------------------------------------
+options:
+  invite_token: ""
+  # The edge forwards the raw TLS stream to
+  # the origin, which holds the cert. Point "origin" at your local TLS terminator (e.g.
+  # the NGINX SSL proxy add-on with your certbot cert), reachable over the internal
+  # Replace the hostname and the
+  # nginx_proxy origin. The agent prepends a PROXY protocol v2 header; your proxy must
+  # accept it, or add "proxy_protocol":"none" to the service.
+  services: >-
+    [{"hostname":"ha.example.com","origin":"nginx_proxy:443"}]
+  tcp_services: ""
+  udp_services: ""
+  # Advanced: restrict which edge node IDs the agent trusts (TOWONEL_AGENT_TRUSTED_EDGES).
+  # Leave empty to trust whatever the hub advertises. Most setups leave this blank.
+  trusted_edges: ""
+  health_listen_addr: "127.0.0.1:9090"
+  log_level: info
+
+schema:
+  invite_token: password
+  services: str
+  tcp_services: str?
+  udp_services: str?
+  trusted_edges: str?
+  health_listen_addr: str?
+  log_level: list(trace|debug|info|warn|error)?

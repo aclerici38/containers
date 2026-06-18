@@ -1,0 +1,40 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-action.json
+name: App Path
+description: Resolve the source directory (apps or home-assistant-apps) for an app name
+
+inputs:
+  app:
+    description: App Name
+    required: true
+
+outputs:
+  path:
+    description: Path to the app's source directory (e.g. apps/smartmontools)
+    value: ${{ steps.resolve.outputs.path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve App Path
+      id: resolve
+      shell: bash
+      env:
+        APP: ${{ inputs.app }}
+      run: |-
+        set -eu
+        found=""
+        for root in apps home-assistant-apps; do
+          if [ -d "${root}/${APP}" ]; then
+            if [ -n "${found}" ]; then
+              echo "::error::app '${APP}' exists in both '${found}' and '${root}'; names must be unique" >&2
+              exit 1
+            fi
+            found="${root}/${APP}"
+          fi
+        done
+        if [ -z "${found}" ]; then
+          echo "::error::app '${APP}' not found under apps/ or home-assistant-apps/" >&2
+          exit 1
+        fi
+        echo "path=${found}" >> "$GITHUB_OUTPUT"

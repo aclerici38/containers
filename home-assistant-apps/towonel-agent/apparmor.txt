@@ -1,0 +1,61 @@
+#include <tunables/global>
+
+# AppArmor profile for the towonel-agent add-on.
+# Goal: allow exactly what the entrypoint needs (read options, drop privileges,
+# run the agent, talk to the network) and deny everything else — especially
+# writes to the container filesystem, since the agent is stateless.
+#
+# If the add-on fails to start with an AppArmor (DENIED) message in the log,
+# delete this file (or set `apparmor: false` in config.yaml) to fall back to the
+# Supervisor's default generated profile, then tighten from the log.
+profile towonel_agent flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+  #include <abstractions/nameservice>
+
+  # Outbound-only networking: QUIC (UDP) to relays, TCP to origins, DNS.
+  network inet  stream,
+  network inet6 stream,
+  network inet  dgram,
+  network inet6 dgram,
+  network netlink raw,
+
+  # su-exec needs these to change uid/gid; nothing else is permitted.
+  capability setuid,
+  capability setgid,
+  capability dac_override,
+
+  # Allow the add-on to be stopped cleanly.
+  signal (receive) set=(term,kill,int,hup,cont),
+
+  # Entrypoint chain. ix = execute under this same profile (inherit).
+  # On Wolfi, /bin/sh is busybox; jq and su-exec live under /usr/bin.
+  /run.sh                     r,
+  /bin/sh                     ix,
+  /bin/busybox                ix,
+  /usr/bin/jq                 ix,
+  /usr/bin/su-exec            ix,
+  /usr/local/bin/towonel-agent ix,
+
+  # Read-only access to the bits the runtime needs.
+  /data/options.json          r,
+  /usr/**                     r,
+  /lib/**                     r,
+  /bin/**                     r,
+  /sbin/**                    r,
+  /etc/**                     r,
+  /proc/sys/kernel/random/uuid r,
+  /proc/sys/net/**            r,
+  owner /proc/*/net/**        r,
+  owner /proc/*/status        r,
+
+  # Scratch space only; the agent persists nothing.
+  owner /tmp/**               rw,
+
+  # Be explicit: no writing to the rest of the filesystem.
+  deny /data/** w,
+  deny /usr/**  w,
+  deny /etc/**  w,
+  deny /bin/**  w,
+  deny /sbin/** w,
+  deny /lib/**  w,
+}
