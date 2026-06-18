@@ -30,12 +30,19 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       app-exists: ${{ steps.app-exists.outputs.exists }}
+      app-path: ${{ steps.app-path.outputs.path }}
       platforms: ${{ steps.app-options.outputs.platforms }}
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
+
+      - name: Resolve App Path
+        uses: ./.github/actions/app-path
+        id: app-path
+        with:
+          app: ${{ inputs.app }}
 
       - name: Check For Existing App
         uses: ./.github/actions/app-exists
@@ -48,6 +55,7 @@ jobs:
         id: app-options
         with:
           app: ${{ inputs.app }}
+          app-path: ${{ steps.app-path.outputs.path }}
 
       - name: Get App Versions
         uses: ./.github/actions/app-versions
@@ -114,6 +122,7 @@ jobs:
         id: app-options
         with:
           app: ${{ inputs.app }}
+          app-path: ${{ needs.plan.outputs.app-path }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
@@ -132,8 +141,10 @@ jobs:
         uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
 
       - name: Add Include Directory to Build Context
+        env:
+          APP_PATH: ${{ needs.plan.outputs.app-path }}
         run: |
-          rsync -a --ignore-existing --progress ./include/ "./apps/${APP}/"
+          rsync -a --ignore-existing --progress ./include/ "./${APP_PATH}/"
 
       - name: Build App
         uses: docker/bake-action@6614cfa25eff9a0b2b2697efb0b6159e7680d584 # v7.2.0
@@ -154,7 +165,7 @@ jobs:
             *.output=type=image,name=ghcr.io/${{ github.repository_owner }}/${{ inputs.app }},push-by-digest=true,name-canonical=true,push=true,compression=zstd,force-compression=true
             *.platform=${{ matrix.platform }}
             *.tags=
-          source: ./apps/${{ inputs.app }}
+          source: ./${{ needs.plan.outputs.app-path }}
           targets: image
 
       - name: Export Digest
@@ -278,6 +289,7 @@ jobs:
     if: ${{ ! inputs.release }}
     name: Test
     needs:
+      - plan
       - merge
       - attest
     runs-on: ubuntu-24.04
@@ -299,6 +311,7 @@ jobs:
         uses: ./.github/actions/app-tests
         with:
           app: ${{ inputs.app }}
+          app-path: ${{ needs.plan.outputs.app-path }}
           image: ghcr.io/${{ github.repository_owner }}/${{ inputs.app }}@${{ needs.merge.outputs.digest }}
           token: ${{ github.token }}
 
@@ -343,6 +356,7 @@ jobs:
         id: app-options
         with:
           app: ${{ inputs.app }}
+          app-path: ${{ needs.plan.outputs.app-path }}
 
       - name: Get Release Tag
         uses: ./.github/actions/release-tag
@@ -367,42 +381,3 @@ jobs:
           **Source**: <${SOURCE}>
           EOF
           gh release create "$TAG" --notes-file release-notes.md
-
-  notify:
-    if: ${{ inputs.release && !cancelled() }}
-    needs:
-      - plan
-      - build
-      - merge
-      - attest
-      - announce
-    name: Notify
-    runs-on: ubuntu-24.04
-    steps:
-      - if: ${{ contains(needs.*.result, 'failure') }}
-        name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - if: ${{ contains(needs.*.result, 'failure') }}
-        name: Get App Options
-        uses: ./.github/actions/app-options
-        id: app-options
-        with:
-          app: ${{ inputs.app }}
-
-      - if: ${{ contains(needs.*.result, 'failure') }}
-        name: Send Discord Webhook
-        uses: sarisia/actions-status-discord@eb045afee445dc055c18d3d90bd0f244fd062708 # v1.16.0
-        with:
-          color: "0xFF0000"
-          description: |
-            App: `${{ inputs.app }}`
-            Version: `${{ steps.app-options.outputs.version }}`
-            [Rebuild](${{ github.server_url }}/${{ github.repository }}/actions/workflows/release.yaml)
-          nodetail: true
-          title: App build failed
-          username: GitHub Actions
-          url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          webhook: ${{ secrets.DISCORD_WEBHOOK }}

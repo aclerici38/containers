@@ -10,6 +10,7 @@ on:
       - main
     paths:
       - apps/**
+      - home-assistant-apps/**
   schedule:
     - cron: "0 6 * * *"
   workflow_dispatch:
@@ -51,14 +52,15 @@ jobs:
 
       # Ensure each app/<name> label exists in the repo. safe-settings owns
       # the static labels via the org admin repo; here we only reconcile the
-      # dynamic set derived from the apps/ tree. --force makes it idempotent.
+      # dynamic set derived from the apps/ and home-assistant-apps/ trees.
+      # --force makes it idempotent.
       - name: Ensure dynamic app/* labels exist
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -eu
-          find apps -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | while IFS= read -r app; do
+          find apps home-assistant-apps -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | while IFS= read -r app; do
             gh label create "app/$app" --color "027fa0" --force
           done
 

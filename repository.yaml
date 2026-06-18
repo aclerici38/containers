@@ -1,0 +1,6 @@
+---
+# Home Assistant app repository marker. The Supervisor discovers apps by
+# recursively scanning for config.yaml, so apps can live under home-assistant-apps/.
+name: aclerici38 Home Assistant Apps
+url: https://github.com/aclerici38/containers
+maintainer: Anthony Clerici (https://github.com/aclerici38)
