@@ -28,6 +28,7 @@ target "image-local" {
   output = ["type=docker"]
 }
 
+// build pls
 target "image-all" {
   inherits = ["image"]
   platforms = [
