@@ -1,10 +1,7 @@
 # syntax=docker/dockerfile:1
-
+ARG VERSION
 FROM codeberg.org/towonel/towonel-agent:${VERSION} AS upstream
 
-# 2) Minimal glibc runtime. Wolfi is Alpine-small but glibc-based, matching the
-#    upstream distroless/cc-debian12 ABI — the agent binary is dynamically linked
-#    against glibc and would NOT load on Alpine/musl.
 FROM cgr.dev/chainguard/wolfi-base:latest
 
 # jq      -> parse /data/options.json (no bashio, no HA base image needed)

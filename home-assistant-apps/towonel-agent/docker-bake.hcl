@@ -1,8 +1,5 @@
 target "docker-metadata-action" {}
 
-# Upstream agent release. This is the tag the prebuilt image is published under
-# (read by CI's app-options) and the version config.yaml pulls. The Dockerfile pins
-# the same upstream release by digest; Renovate keeps both current.
 variable "VERSION" {
   // renovate: datasource=docker depName=codeberg.org/towonel/towonel-agent
   default = "0.2.2"
