@@ -1,4 +1,3 @@
----
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Pull Request
 
@@ -13,77 +12,108 @@ jobs:
   prepare:
     name: Prepare
     runs-on: ubuntu-24.04
+
     permissions:
       contents: read
+
     outputs:
-      changed-files: ${{ steps.merge.outputs.result }}
+      matrix: ${{ steps.merge.outputs.result }}
+      count: ${{ steps.merge.outputs.count }}
+
     steps:
       - name: Get changed files (apps)
-        uses: bjw-s-labs/action-changed-files@a9a36fb08ce06db9b02fbd8026cc2c0945eb9841 # v0.6.0
         id: changed-apps
+        uses: bjw-s-labs/action-changed-files@a9a36fb08ce06db9b02fbd8026cc2c0945eb9841 # v0.6.0
         with:
           path: apps
           include_only_directories: true
           max_depth: 1
 
       - name: Get changed files (home-assistant-apps)
-        uses: bjw-s-labs/action-changed-files@a9a36fb08ce06db9b02fbd8026cc2c0945eb9841 # v0.6.0
         id: changed-haos
+        uses: bjw-s-labs/action-changed-files@a9a36fb08ce06db9b02fbd8026cc2c0945eb9841 # v0.6.0
         with:
           path: home-assistant-apps
           include_only_directories: true
           max_depth: 1
 
-      - name: Merge changed apps
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      - name: Build matrix
         id: merge
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           APPS: ${{ steps.changed-apps.outputs.changed_files }}
           HAOS: ${{ steps.changed-haos.outputs.changed_files }}
         with:
+          result-encoding: string
           script: |
-            const parse = (s) => { try { return JSON.parse(s || '[]'); } catch { return []; } };
-            const merged = [...parse(process.env.APPS), ...parse(process.env.HAOS)];
-            core.setOutput('result', JSON.stringify(merged));
+            const parse = (s) => {
+              try {
+                return JSON.parse(s || '[]');
+              } catch {
+                return [];
+              }
+            };
+
+            const merged = [
+              ...parse(process.env.APPS),
+              ...parse(process.env.HAOS),
+            ];
+
+            core.setOutput('count', merged.length.toString());
+
+            return JSON.stringify({
+              include: merged.map(app => ({ app }))
+            });
 
   build:
-    if: ${{ needs.prepare.outputs.changed-files != '[]' }}
     name: Build ${{ matrix.app }}
+
     needs:
       - prepare
+
+    if: ${{ needs.prepare.outputs.count != '0' }}
+
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+
     uses: ./.github/workflows/app-builder.yaml
+
     permissions:
       attestations: write
       contents: read
       id-token: write
       packages: write
+
     secrets:
       BOT_CLIENT_ID: ${{ secrets.BOT_CLIENT_ID }}
       BOT_APP_PRIVATE_KEY: ${{ secrets.BOT_APP_PRIVATE_KEY }}
       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-    strategy:
-      matrix:
-        app: ${{ fromJSON(needs.prepare.outputs.changed-files || '[]') }}
-      fail-fast: false
-      max-parallel: 4
+
     with:
       app: ${{ matrix.app }}
       release: false
 
   status:
-    if: ${{ !cancelled() }}
     name: Build Success
+
+    if: ${{ !cancelled() }}
+
     needs:
       - build
+
     runs-on: ubuntu-24.04
+
     permissions: {}
+
     steps:
       - name: Any jobs failed?
         if: ${{ contains(needs.*.result, 'failure') }}
-        run: |
-          exit 1
+        run: exit 1
 
       - name: All jobs passed or skipped?
-        if: ${{ !(contains(needs.*.result, 'failure')) }}
-        run: |-
-          echo "All jobs passed or skipped" && echo "${{ toJSON(needs.*.result) }}"
+        if: ${{ !contains(needs.*.result, 'failure') }}
+        run: |
+          echo "All jobs passed or skipped"
+          echo '${{ toJSON(needs.*.result) }}'
