@@ -2,7 +2,7 @@
 ARG VERSION
 FROM codeberg.org/towonel/towonel-agent:${VERSION} AS upstream
 
-FROM cgr.dev/chainguard/wolfi-base:latest
+FROM mirror.gcr.io/chainguard/wolfi-base:latest
 
 # jq      -> parse /data/options.json (no bashio, no HA base image needed)
 # su-exec -> drop from root to an unprivileged uid before exec'ing the agent
