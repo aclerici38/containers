@@ -1,16 +1,12 @@
 target "docker-metadata-action" {}
 
-variable "APP" {
-  default = "postgres-init"
-}
-
 variable "VERSION" {
-  // renovate: datasource=docker depName=docker.io/library/postgres versioning=docker
-  default = "18.4-alpine3.23"
+  // renovate: datasource=alpine depName=smartmontools versioning=apk
+  default = "7.5-r0"
 }
 
 variable "SOURCE" {
-  default = "https://github.com/postgres/postgres"
+  default = "https://github.com/smartmontools/smartmontools"
 }
 
 group "default" {
@@ -30,7 +26,6 @@ target "image" {
 target "image-local" {
   inherits = ["image"]
   output = ["type=docker"]
-  tags = ["${APP}:${VERSION}"]
 }
 
 target "image-all" {
