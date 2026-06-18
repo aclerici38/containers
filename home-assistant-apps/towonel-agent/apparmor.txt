@@ -1,11 +1,11 @@
 #include <tunables/global>
 
-# AppArmor profile for the towonel-agent add-on.
+# AppArmor profile for the towonel-agent app.
 # Goal: allow exactly what the entrypoint needs (read options, drop privileges,
 # run the agent, talk to the network) and deny everything else — especially
 # writes to the container filesystem, since the agent is stateless.
 #
-# If the add-on fails to start with an AppArmor (DENIED) message in the log,
+# If the app fails to start with an AppArmor (DENIED) message in the log,
 # delete this file (or set `apparmor: false` in config.yaml) to fall back to the
 # Supervisor's default generated profile, then tighten from the log.
 profile towonel_agent flags=(attach_disconnected,mediate_deleted) {
@@ -24,7 +24,7 @@ profile towonel_agent flags=(attach_disconnected,mediate_deleted) {
   capability setgid,
   capability dac_override,
 
-  # Allow the add-on to be stopped cleanly.
+  # Allow the app to be stopped cleanly.
   signal (receive) set=(term,kill,int,hup,cont),
 
   # Entrypoint chain. ix = execute under this same profile (inherit).

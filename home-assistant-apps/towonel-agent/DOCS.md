@@ -9,11 +9,11 @@ ports on your router**. A privilege-light alternative to Cloudflare Tunnel.
 
 The agent only ever makes **outbound** QUIC connections to the towonel relays and
 reaches your local services as their "origin". There are no inbound ports, so the
-add-on needs no `ports`, no `host_network`, and no router changes.
+app needs no `ports`, no `host_network`, and no router changes.
 
 ## Security posture
 
-This add-on is built to be as unprivileged as Home Assistant allows:
+This app is built to be as unprivileged as Home Assistant allows:
 
 - **Not s6 / not the HA base image.** Built on Wolfi (a glibc-based minimal base)
   with `init: false`, so the only PID 1 is a tiny `sh` script.
@@ -28,10 +28,10 @@ This add-on is built to be as unprivileged as Home Assistant allows:
 - **AppArmor.** A bundled profile (`apparmor.txt`) restricts capabilities, network
   modes, and filesystem writes.
 
-> The one unavoidable bit of root: a configurable HA add-on must read its own
+> The one unavoidable bit of root: a configurable HA app must read its own
 > `options.json`, which is `0600` root-owned, so PID 1 starts as root for the few
 > milliseconds it takes to read options and drop privileges. Fully non-root from
-> PID 1 is not possible for any add-on that takes user configuration.
+> PID 1 is not possible for any app that takes user configuration.
 
 ## Getting an invite token
 
@@ -62,14 +62,14 @@ config is required.
 towonel only does **passthrough** TLS (the default — an older `terminate` mode was
 removed): the edge reads the TLS SNI and forwards the raw, still-encrypted stream to
 the origin, which **holds the certificate**. So the origin must be something that
-terminates TLS — point it at your local TLS proxy (e.g. the **NGINX SSL proxy add-on**
+terminates TLS — point it at your local TLS proxy (e.g. the **NGINX SSL proxy app**
 serving your **certbot** certificate), reachable over the internal Supervisor network:
 
 ```json
 [{ "hostname": "ha.example.com", "origin": "nginx_proxy:443" }]
 ```
 
-Replace `nginx_proxy` with your proxy add-on's hostname. Do **not** point the origin
+Replace `nginx_proxy` with your proxy app's hostname. Do **not** point the origin
 straight at `homeassistant:8123` — that's plain HTTP, and passthrough hands it raw TLS.
 
 The agent prepends a **PROXY protocol v2** header so the proxy sees the real client IP;
@@ -88,7 +88,7 @@ per-service with `"proxy_protocol": "none"`.
 
 - Supported architectures are `amd64` and `aarch64` only — upstream publishes the
   agent for those two.
-- The add-on does **not** build on your Home Assistant device. The image is built by
+- The app does **not** build on your Home Assistant device. The image is built by
   this repo's CI and published to `ghcr.io/aclerici38/towonel-agent`; the Supervisor
   just pulls it (see `image:` in `config.yaml`).
 - See the upstream docs: <https://towonel.dev/docs/agent/docker/>.

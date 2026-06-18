@@ -16,7 +16,7 @@ FROM cgr.dev/chainguard/wolfi-base:latest@sha256:34977aa13765da89f60fee8fe5230e2
 # su-exec -> drop from root to an unprivileged uid before exec'ing the agent
 #            (~10 KB; the Wolfi/Alpine equivalent of gosu)
 # ca-certificates-bundle -> trust roots for the agent's outbound TLS/QUIC
-# /data is the add-on data dir the Supervisor bind-mounts options.json into; create
+# /data is the app data dir the Supervisor bind-mounts options.json into; create
 # the mount point so it exists even before the mount (and for tests that inject it).
 RUN apk add --no-cache jq su-exec ca-certificates-bundle \
     && addgroup -g 10001 -S towonel \
