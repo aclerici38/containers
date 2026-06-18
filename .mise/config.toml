@@ -17,29 +17,21 @@ zizmor = "1.25.2"
 description = "Build and test an app locally"
 dir = "{{config_root}}/.cache"
 usage = '''
-arg "<app>"
+arg "<path>"
 '''
 run = '''
-rsync -aqIP {{config_root}}/include/ {{config_root}}/apps/"$usage_app"/ .
+rsync -aqIP {{config_root}}/include/ {{config_root}}/"$usage_path"/ .
 docker buildx bake --no-cache --metadata-file docker-bake.json --set=*.output=type=docker --load
-TEST_IMAGE="$(jq -r '."image-local"."image.name" | sub("^docker.io/library/"; "")' docker-bake.json)" go test -v {{config_root}}/apps/"$usage_app"/...
+TEST_IMAGE="$(jq -r '."image-local"."image.name" | sub("^docker.io/library/"; "")' docker-bake.json)" go test -v {{config_root}}/"$usage_path"/...
 '''
 
 [tasks.remote-build]
 description = "Trigger a remote build"
 usage = '''
-arg "<app>"
+arg "<path>"
 arg "[release]" help="release flag (default: false)"
 '''
-run = 'gh workflow run release.yaml -f app="$usage_app" -f release="${usage_release:-false}"'
-
-[tasks.generate-label-config]
-hide = true
-run = '''
-find "{{config_root}}/apps" -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | while IFS= read -r app; do
-    yq -i ". += {\"app/$app\": [{\"changed-files\": [{\"any-glob-to-any-file\": [\"apps/$app/**\"]}]}]}" {{config_root}}/.github/labeler.yaml
-done
-'''
+run = 'gh workflow run release.yaml -f app="$usage_path" -f release="${usage_release:-false}"'
 
 [hooks]
 postinstall = ["mkdir -p {{config_root}}/.cache", "lefthook install"]

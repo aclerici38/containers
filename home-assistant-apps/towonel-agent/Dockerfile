@@ -12,7 +12,7 @@ FROM mirror.gcr.io/chainguard/wolfi-base:latest
 # the mount point so it exists even before the mount (and for tests that inject it).
 # TODO: revert and test regular apk repo again
 RUN echo "https://packages.wolfi.dev/os" > /etc/apk/repositories \
-    apk add --no-cache jq su-exec ca-certificates-bundle \
+    && apk add --no-cache jq su-exec ca-certificates-bundle \
     && addgroup -g 10001 -S towonel \
     && adduser  -u 10001 -G towonel -S -D -H -s /sbin/nologin towonel \
     && mkdir -p /data \
