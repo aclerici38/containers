@@ -59,7 +59,7 @@ jobs:
           script: |
             const parse = (s) => { try { return JSON.parse(s || '[]'); } catch { return []; } };
             const merged = [...parse(process.env.APPS), ...parse(process.env.HAOS)];
-            core.setOutput('result', JSON.stringify(merged));
+            return merged;
 
   changed:
     if: ${{ needs.prepare.outputs.changed-files != '[]' || github.event_name == 'workflow_dispatch' }}

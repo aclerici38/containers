@@ -47,9 +47,6 @@ jobs:
           experimental: true
           install_args: --locked
 
-      - name: Generate Label Config
-        run: mise run generate-label-config
-
       # Ensure each app/<name> label exists in the repo. safe-settings owns
       # the static labels via the org admin repo; here we only reconcile the
       # dynamic set derived from the apps/ and home-assistant-apps/ trees.
