@@ -11,10 +11,11 @@ import (
 	"github.com/home-operations/containers/testhelpers"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
+	tcexec "github.com/testcontainers/testcontainers-go/exec"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-const defaultImage = "ghcr.io/aclerici38/towonel-agent:rolling"
+const defaultImage = "ghcr.io/aclerici38/haos/towonel-agent:rolling"
 
 // TestBinaryRuns is the smoke test: the upstream glibc binary loads and runs on the
 // Wolfi base (the whole reason we don't use an Alpine/musl base).
@@ -58,7 +59,8 @@ func TestEndToEnd(t *testing.T) {
   "invite_token": "tt_inv_2.aaaa.bbbb.cccc",
   "services": "[{\"hostname\":\"x.example.com\",\"origin\":\"localhost:1\"}]",
   "health_listen_addr": "0.0.0.0:9090",
-  "log_level": "info"
+  "log_level": "info",
+  "extra_env": [{"name": "TOWONEL_TEST_EXTRA", "value": "hello world"}]
 }`
 	optionsPath := filepath.Join(t.TempDir(), "options.json")
 	require.NoError(t, os.WriteFile(optionsPath, []byte(options), 0o644))
@@ -114,4 +116,12 @@ func TestEndToEnd(t *testing.T) {
 	status, err := io.ReadAll(reader)
 	require.NoError(t, err)
 	require.Regexp(t, `(?m)^Uid:\s+10001\s`, string(status), "agent (PID 1) should run as uid 10001, not root")
+
+	// extra_env passthrough: the entry reached the agent's environment.
+	code, reader, err = ctr.Exec(ctx, []string{"cat", "/proc/1/environ"}, tcexec.WithUser("10001"))
+	require.NoError(t, err)
+	require.Equal(t, 0, code)
+	environ, err := io.ReadAll(reader)
+	require.NoError(t, err)
+	require.Contains(t, string(environ), "TOWONEL_TEST_EXTRA=hello world", "extra_env entry should be exported into the agent's environment")
 }

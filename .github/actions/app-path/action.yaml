@@ -12,6 +12,9 @@ outputs:
   path:
     description: Path to the app's source directory (e.g. apps/smartmontools)
     value: ${{ steps.resolve.outputs.path }}
+  image-name:
+    description: Owner-relative image repository (e.g. smartmontools, or haos/towonel-agent for HAOS apps)
+    value: ${{ steps.resolve.outputs.image-name }}
 
 runs:
   using: composite
@@ -24,6 +27,7 @@ runs:
       run: |-
         set -eu
         found=""
+        found_root=""
         for root in apps home-assistant-apps; do
           if [ -d "${root}/${APP}" ]; then
             if [ -n "${found}" ]; then
@@ -31,10 +35,18 @@ runs:
               exit 1
             fi
             found="${root}/${APP}"
+            found_root="${root}"
           fi
         done
         if [ -z "${found}" ]; then
           echo "::error::app '${APP}' not found under apps/ or home-assistant-apps/" >&2
           exit 1
         fi
+        # HAOS apps publish under a lowercase `haos/` namespace; regular apps stay flat.
+        if [ "${found_root}" = "home-assistant-apps" ]; then
+          image_name="haos/${APP}"
+        else
+          image_name="${APP}"
+        fi
         echo "path=${found}" >> "$GITHUB_OUTPUT"
+        echo "image-name=${image_name}" >> "$GITHUB_OUTPUT"

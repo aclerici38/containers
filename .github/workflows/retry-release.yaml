@@ -78,8 +78,9 @@ jobs:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           REPO_OWNER: ${{ github.repository_owner }}
           APP: ${{ matrix.app }}
+          IMAGE_NAME: ${{ steps.app-path.outputs.image-name }}
         run: |
-          if ! version=$(regctl image inspect "ghcr.io/${REPO_OWNER}/${APP}:rolling" \
+          if ! version=$(regctl image inspect "ghcr.io/${REPO_OWNER}/${IMAGE_NAME}:rolling" \
               | jq --raw-output '.config.Labels["org.opencontainers.image.version"]' 2>/dev/null) || [[ -z "${version}" ]];
           then
               echo "Failed to get registry version for ${APP}"
