@@ -11,6 +11,7 @@ import (
 	"github.com/home-operations/containers/testhelpers"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
+	tcexec "github.com/testcontainers/testcontainers-go/exec"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
@@ -116,9 +117,8 @@ func TestEndToEnd(t *testing.T) {
 	require.NoError(t, err)
 	require.Regexp(t, `(?m)^Uid:\s+10001\s`, string(status), "agent (PID 1) should run as uid 10001, not root")
 
-	// extra_env passthrough: the "KEY=VALUE" entry reached the agent's environment.
-	// /proc/1/environ is NUL-separated, so match the entry between NUL boundaries.
-	code, reader, err = ctr.Exec(ctx, []string{"cat", "/proc/1/environ"})
+	// extra_env passthrough: the entry reached the agent's environment.
+	code, reader, err = ctr.Exec(ctx, []string{"cat", "/proc/1/environ"}, tcexec.WithUser("10001"))
 	require.NoError(t, err)
 	require.Equal(t, 0, code)
 	environ, err := io.ReadAll(reader)
