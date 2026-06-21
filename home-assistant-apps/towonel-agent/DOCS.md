@@ -106,6 +106,6 @@ per-service with `"proxy_protocol": "none"`.
 - Supported architectures are `amd64` and `aarch64` only — upstream publishes the
   agent for those two.
 - The app does **not** build on your Home Assistant device. The image is built by
-  this repo's CI and published to `ghcr.io/aclerici38/towonel-agent`; the Supervisor
+  this repo's CI and published to `ghcr.io/aclerici38/haos/towonel-agent`; the Supervisor
   just pulls it (see `image:` in `config.yaml`).
 - See the upstream docs: <https://towonel.dev/docs/agent/docker/>.

@@ -11,7 +11,7 @@ description: >-
   Self-hosted tunnel agent (towonel) — expose Home Assistant through NAT / CGNAT /
   dynamic IP without opening inbound ports. A privilege-light alternative to Cloudflare Tunnel.
 url: https://towonel.dev/docs/agent/docker/
-image: ghcr.io/aclerici38/towonel-agent
+image: ghcr.io/aclerici38/haos/towonel-agent
 
 arch:
   - aarch64

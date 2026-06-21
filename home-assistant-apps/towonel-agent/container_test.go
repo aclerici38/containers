@@ -14,7 +14,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-const defaultImage = "ghcr.io/aclerici38/towonel-agent:rolling"
+const defaultImage = "ghcr.io/aclerici38/haos/towonel-agent:rolling"
 
 // TestBinaryRuns is the smoke test: the upstream glibc binary loads and runs on the
 // Wolfi base (the whole reason we don't use an Alpine/musl base).
