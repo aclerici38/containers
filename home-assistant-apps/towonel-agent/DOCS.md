@@ -56,6 +56,23 @@ config is required.
 | `trusted_edges`      | no       | Advanced: restrict which edge node IDs the agent trusts. Blank = trust whatever the hub advertises. |
 | `health_listen_addr` | no       | Health/metrics bind address. Default `127.0.0.1:9090` (container-internal).                         |
 | `log_level`          | no       | `trace` / `debug` / `info` / `warn` / `error`. Default `info`.                                      |
+| `extra_env`          | no       | Escape hatch: list of `name`/`value` pairs exported verbatim into the agent's environment.          |
+
+### `extra_env` — passing arbitrary env vars
+
+For any upstream variable that doesn't have a dedicated option above, add it here as
+`name`/`value`:
+
+```yaml
+extra_env:
+    - name: TOWONEL_AGENT_SOME_NEW_FLAG
+      value: "1"
+    - name: RUST_BACKTRACE
+      value: full
+```
+
+`name` must be a valid env var identifier (`[A-Za-z_][A-Za-z0-9_]*`); the schema rejects
+anything else. Entries are exported **last**, so they override the options above.
 
 ### `services` — exposing Home Assistant
 

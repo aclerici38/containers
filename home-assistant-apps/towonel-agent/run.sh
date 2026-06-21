@@ -45,6 +45,18 @@ HEALTH="$(opt health_listen_addr)"
 
 export RUST_LOG="$(jq -r '.log_level // "info"' "$CONFIG")"
 
+# --- Extra env (escape hatch) --------------------------------------------------
+# Each entry of the `extra_env` array is a {name, value} object; flatten to a
+# "name=value" line and export it verbatim. Applied last, so it can override any
+# mapping above. Entries with an empty name are skipped. The heredoc
+# keeps the loop in this shell so the exports survive to the exec below.
+while IFS='=' read -r name value; do
+    [ -z "$name" ] && continue
+    export "$name=$value"
+done <<EOF
+$(jq -r '.extra_env[]? | select(.name != null and .name != "") | "\(.name)=\(.value // "")"' "$CONFIG")
+EOF
+
 echo "[towonel-agent] starting agent as ${RUN_AS} (dropping root)"
 # Final, long-lived process runs unprivileged. exec keeps it as PID 1 so signals
 # (SIGTERM on app stop) reach the agent directly. su-exec is the Wolfi/Alpine

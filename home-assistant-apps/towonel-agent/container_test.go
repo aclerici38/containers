@@ -58,7 +58,8 @@ func TestEndToEnd(t *testing.T) {
   "invite_token": "tt_inv_2.aaaa.bbbb.cccc",
   "services": "[{\"hostname\":\"x.example.com\",\"origin\":\"localhost:1\"}]",
   "health_listen_addr": "0.0.0.0:9090",
-  "log_level": "info"
+  "log_level": "info",
+  "extra_env": [{"name": "TOWONEL_TEST_EXTRA", "value": "hello world"}]
 }`
 	optionsPath := filepath.Join(t.TempDir(), "options.json")
 	require.NoError(t, os.WriteFile(optionsPath, []byte(options), 0o644))
@@ -114,4 +115,13 @@ func TestEndToEnd(t *testing.T) {
 	status, err := io.ReadAll(reader)
 	require.NoError(t, err)
 	require.Regexp(t, `(?m)^Uid:\s+10001\s`, string(status), "agent (PID 1) should run as uid 10001, not root")
+
+	// extra_env passthrough: the "KEY=VALUE" entry reached the agent's environment.
+	// /proc/1/environ is NUL-separated, so match the entry between NUL boundaries.
+	code, reader, err = ctr.Exec(ctx, []string{"cat", "/proc/1/environ"})
+	require.NoError(t, err)
+	require.Equal(t, 0, code)
+	environ, err := io.ReadAll(reader)
+	require.NoError(t, err)
+	require.Contains(t, string(environ), "TOWONEL_TEST_EXTRA=hello world", "extra_env entry should be exported into the agent's environment")
 }

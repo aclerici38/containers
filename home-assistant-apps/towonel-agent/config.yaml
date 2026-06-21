@@ -5,7 +5,7 @@ name: Towonel Agent
 # It tracks the upstream agent release pinned as VERSION in docker-bake.hcl.
 
 # renovate: datasource=docker depName=codeberg.org/towonel/towonel-agent
-version: "0.2.2"
+version: "1.0.0"
 slug: towonel_agent
 description: >-
   Self-hosted tunnel agent (towonel) — expose Home Assistant through NAT / CGNAT /
@@ -53,6 +53,10 @@ options:
   trusted_edges: ""
   health_listen_addr: "127.0.0.1:9090"
   log_level: info
+  # Escape hatch: arbitrary name/value pairs exported verbatim into the agent's
+  # environment. Use it for any upstream TOWONEL_* (or other) var that doesn't have a
+  # dedicated option above. Entries are applied last, so they override the mappings above.
+  extra_env: []
 
 schema:
   invite_token: password
@@ -62,3 +66,6 @@ schema:
   trusted_edges: str?
   health_listen_addr: str?
   log_level: list(trace|debug|info|warn|error)?
+  extra_env:
+    - name: match(^[A-Za-z_][A-Za-z0-9_]*$)
+      value: str
