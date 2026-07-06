@@ -6,13 +6,13 @@ variable "VERSION" {
 }
 
 variable "CLOUDFLARE_VERSION" {
-  // renovate: datasource=github-releases depName=caddy-dns/cloudflare packageName=caddy-dns/cloudflare
-  default = "v0.2.1"
+  // renovate: datasource=github-tags depName=caddy-dns/cloudflare
+  default = "v0.2.4"
 }
 
 variable "L4_VERSION" {
-  // renovate: datasource=github-releases depName=mholt/caddy-l4 packageName=mholt/caddy-l4
-  default = "v0.2.1"
+  // renovate: datasource=github-releases depName=mholt/caddy-l4
+  default = "v0.1.1"
 }
 
 variable "SOURCE" {
