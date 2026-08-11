@@ -12,7 +12,7 @@ variable "CLOUDFLARE_VERSION" {
 
 variable "L4_VERSION" {
   // renovate: datasource=github-releases depName=mholt/caddy-l4
-  default = "v0.1.1"
+  default = "v0.1.2"
 }
 
 variable "SOURCE" {
