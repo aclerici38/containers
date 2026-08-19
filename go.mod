@@ -3,9 +3,11 @@ module github.com/home-operations/containers
 go 1.26.2
 
 require (
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.1
 	github.com/testcontainers/testcontainers-go v0.42.0
 )
+
+require go.yaml.in/yaml/v3 v3.0.5 // indirect
 
 require (
 	dario.cat/mergo v1.0.2 // indirect
