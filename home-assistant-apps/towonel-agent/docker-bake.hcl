@@ -2,7 +2,7 @@ target "docker-metadata-action" {}
 
 variable "VERSION" {
   // renovate: datasource=docker depName=codeberg.org/towonel/towonel-agent
-  default = "1.0.1"
+  default = "1.6.0"
 }
 
 variable "SOURCE" {
