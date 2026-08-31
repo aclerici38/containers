@@ -5,7 +5,7 @@ name: Towonel Agent
 # It tracks the upstream agent release pinned as VERSION in docker-bake.hcl.
 
 # renovate: datasource=docker depName=codeberg.org/towonel/towonel-agent
-version: "1.0.1"
+version: "1.6.0"
 slug: towonel_agent
 description: >-
   Self-hosted tunnel agent (towonel) — expose Home Assistant through NAT / CGNAT /
