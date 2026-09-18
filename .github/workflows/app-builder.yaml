@@ -27,7 +27,7 @@ permissions:
 jobs:
   plan:
     name: Plan
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       app-exists: ${{ steps.app-exists.outputs.exists }}
       app-path: ${{ steps.app-path.outputs.path }}
@@ -187,7 +187,7 @@ jobs:
 
   merge:
     name: Merge
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs:
       - plan
       - build
@@ -251,7 +251,7 @@ jobs:
     needs:
       - plan
       - merge
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       packages: write
@@ -297,7 +297,7 @@ jobs:
       - plan
       - merge
       - attest
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -341,7 +341,7 @@ jobs:
     needs:
       - plan
       - attest
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
