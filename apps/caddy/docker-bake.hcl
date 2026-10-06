@@ -2,7 +2,7 @@ target "docker-metadata-action" {}
 
 variable "VERSION" {
   // renovate: datasource=docker depName=caddy
-  default = "2.11.4"
+  default = "2.11.7"
 }
 
 variable "CLOUDFLARE_VERSION" {
